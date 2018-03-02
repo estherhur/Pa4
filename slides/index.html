@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pa4</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Esther Hur" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Pa4
+## ⚔<br/>with xaringan
+### Esther Hur
+### 2018/3/2
+
+---
+
+
+
+---
+#### Load the dataset from your index.Rmd file.
+
+```r
+library(tidyverse)
+```
+
+```
+## Loading tidyverse: ggplot2
+## Loading tidyverse: tibble
+## Loading tidyverse: tidyr
+## Loading tidyverse: readr
+## Loading tidyverse: purrr
+## Loading tidyverse: dplyr
+```
+
+```
+## Conflicts with tidy packages ----------------------------------------------
+```
+
+```
+## filter(): dplyr, stats
+## lag():    dplyr, stats
+```
+
+```r
+my_fricatives &lt;- read_csv("../data_raw/fricatives/fricatives.csv")
+```
+
+```
+## Parsed with column specification:
+## cols(
+##   obs = col_integer(),
+##   s_cog = col_double(),
+##   s_skewness = col_double(),
+##   sh_cog = col_double(),
+##   sh_skewness = col_double()
+## )
+```
+
+```r
+str(my_fricatives)
+```
+
+```
+## Classes 'tbl_df', 'tbl' and 'data.frame':	20 obs. of  5 variables:
+##  $ obs        : int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ s_cog      : num  3285 4664 4680 4874 4879 ...
+##  $ s_skewness : num  -1.22 -1.19 -1.07 -1.06 -1.03 ...
+##  $ sh_cog     : num  2409 2823 2898 3617 3668 ...
+##  $ sh_skewness: num  -0.2481 -0.0165 0.1177 0.1978 0.2118 ...
+##  - attr(*, "spec")=List of 2
+##   ..$ cols   :List of 5
+##   .. ..$ obs        : list()
+##   .. .. ..- attr(*, "class")= chr  "collector_integer" "collector"
+##   .. ..$ s_cog      : list()
+##   .. .. ..- attr(*, "class")= chr  "collector_double" "collector"
+##   .. ..$ s_skewness : list()
+##   .. .. ..- attr(*, "class")= chr  "collector_double" "collector"
+##   .. ..$ sh_cog     : list()
+##   .. .. ..- attr(*, "class")= chr  "collector_double" "collector"
+##   .. ..$ sh_skewness: list()
+##   .. .. ..- attr(*, "class")= chr  "collector_double" "collector"
+##   ..$ default: list()
+##   .. ..- attr(*, "class")= chr  "collector_guess" "collector"
+##   ..- attr(*, "class")= chr "col_spec"
+```
+
+```r
+head(my_fricatives)
+```
+
+```
+## # A tibble: 6 x 5
+##     obs    s_cog s_skewness   sh_cog sh_skewness
+##   &lt;int&gt;    &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;
+## 1     1 3285.300 -1.2152771 2408.519 -0.24808262
+## 2     2 4664.371 -1.1854471 2823.398 -0.01652603
+## 3     3 4679.532 -1.0676233 2898.352  0.11767899
+## 4     4 4873.546 -1.0610645 3617.480  0.19782525
+## 5     5 4878.759 -1.0342092 3668.004  0.21182250
+## 6     6 5194.612 -0.9485275 3684.568  0.26240120
+```
+---
+####Tidy the data
+
+```r
+data1 &lt;- my_fricatives %&gt;%
+gather(., key = "category", value = "values",-obs, na.rm = TRUE,
+       convert = FALSE, factor_key = FALSE) %&gt;%
+       separate(., col = category , into = c('phon', 'variable'), sep = "_") %&gt;%
+  spread(., key =variable, value =values)
+```
+---
+####Provide a table of descriptive statistics
+
+S  | Mean | Standard deviation |  Median
+------------- | ------------- | ------------- | -------------
+COG  | 5690.5238762  | 913.2537201 | 5859.6755041
+Skewness  | -0.7714211  | 0.2834032 | -0.7799646
+
+SH  | Mean | Standard deviation |  Median
+------------- | ------------- | ------------- | -------------
+COG  | 3994.8227851  | 697.0921819 | 3956.026488
+Skewness  | 0.5527295  | 0.441112 | 0.5314921
+---
+##### Make a boxplot
+
+```r
+data1 %&gt;%
+  ggplot(., aes( x = phon, y = cog, fill = phon)) +
+  geom_boxplot()
+```
+
+![](index_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+
+```r
+  labs( x= 'Phoneme', y = 'Center of Gravity')
+```
+
+```
+## $x
+## [1] "Phoneme"
+## 
+## $y
+## [1] "Center of Gravity"
+## 
+## attr(,"class")
+## [1] "labels"
+```
+---
+
+```r
+ggplot(data = data1, aes(x = phon, y = skewness)) +
+  stat_summary(fun.data = mean_cl_boot, geom = 'pointrange') 
+```
+
+![](index_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+---
+#####Fit a model that examines center of gravity as a function of skewness for the [s] segments 
+
+```r
+data_1 &lt;- data1 %&gt;% 
+  filter(., phon == 's') 
+data_1 %&gt;% 
+  ggplot(., aes(x = cog, y =skewness, color = skewness )) +
+  geom_point() +
+  geom_smooth( method = lm)
+```
+
+![](index_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+---
+##### Make a table of the model summary.
+
+```r
+model1 &lt;-lm(data = data_1, cog ~ skewness) 
+   summary(model1)
+```
+
+```
+## 
+## Call:
+## lm(formula = cog ~ skewness, data = data_1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1060.74   -21.72    58.96   123.00   405.24 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   8027.2      212.3   37.80  &lt; 2e-16 ***
+## skewness      3029.1      259.1   11.69 7.69e-10 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 320.1 on 18 degrees of freedom
+## Multiple R-squared:  0.8836,	Adjusted R-squared:  0.8771 
+## F-statistic: 136.6 on 1 and 18 DF,  p-value: 7.691e-10
+```
+---
+###Residuals:
+
+Min   |    1Q  | Median  |     3Q   |   Max 
+------------- | ------------- | ------------- | -------------  | -------------
+-1060.74 |  -21.72  |  58.96 |  123.00  | 405.24 
+
+###Coefficients:
+
+---   | Estimate | Std. Error | t value | p-vale 
+------------- | ------------- | ------------- | -------------  | -------------     
+(Intercept)  | 8027.2    |  212.3 |  37.80  | &lt; 2e-16 ***
+skewness     | 3029.1    |  259.1 |  11.69 | 7.69e-10 ***
+
+
+Residual standard error | Multiple R-squared | Adjusted R-squared | F-statistic | p-value
+------------- | ------------- | ------------- | ------------- | -------------
+320.1 on 18 degrees of freedom | 0.8836 |  0.8771 | 136.6 on 1 and 18 DF | 7.691e-10
+---
+#####Check model diagnostics. Make plots.
+
+```r
+mean(model1$residuals)
+```
+
+```
+## [1] 1.136591e-14
+```
+#####Correlation Test
+
+```r
+cor.test(data_1$cog, model1$residuals)
+```
+
+```
+## 
+## 	Pearson's product-moment correlation
+## 
+## data:  data_1$cog and model1$residuals
+## t = 1.5399, df = 18, p-value = 0.141
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.1193645  0.6808978
+## sample estimates:
+##       cor 
+## 0.3411777
+```
+---
+#####Global Validation of Linear Model Assumptions
+
+```r
+library(gvlma)
+gvmodel &lt;- gvlma(x = model1) 
+plot(gvmodel)
+```
+
+![](index_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+---
+#####Write up the results (as if it were for a journal article).
+
+##### “A linear model was assessed between the center of gravity as a function of skewness for the [s] segments. There was a positive correlation between the two variables, B = 3029.1, S = 259.1, p = 0.005. A scatterplot summarizes the results. Overall, there was a strong, positive correlation between cog as a function of skewness. A Pearson product-moment correlation coefficient was computed to assess the relationship between the amount of water that one consumed and rating of skin elasticity. There was a positive correlation between the two variables, t = 1.5399, df = 18, p-value = 0.141. In addition, a gvlma was run using the global tes on 4 degrees of fredom with a level of signicance = 0.05"
+---
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

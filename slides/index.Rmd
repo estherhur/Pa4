@@ -1,0 +1,117 @@
+---
+title: "Pa4"
+subtitle: "⚔<br/>with xaringan"
+author: "Esther Hur"
+date: "2018/3/2"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+---
+#### Load the dataset from your index.Rmd file.
+```{r}
+library(tidyverse)
+
+my_fricatives <- read_csv("../data_raw/fricatives/fricatives.csv")
+str(my_fricatives)
+head(my_fricatives)
+```
+---
+####Tidy the data
+```{r}
+data1 <- my_fricatives %>%
+gather(., key = "category", value = "values",-obs, na.rm = TRUE,
+       convert = FALSE, factor_key = FALSE) %>%
+       separate(., col = category , into = c('phon', 'variable'), sep = "_") %>%
+  spread(., key =variable, value =values)
+```
+---
+####Provide a table of descriptive statistics
+
+S  | Mean | Standard deviation |  Median
+------------- | ------------- | ------------- | -------------
+COG  | `r mean(my_fricatives$s_cog)`  | `r sd(my_fricatives$s_cog)` | `r median(my_fricatives$s_cog)`
+Skewness  | `r mean(my_fricatives$s_skewness)`  | `r sd(my_fricatives$s_skewness)` | `r median(my_fricatives$s_skewness)`
+
+SH  | Mean | Standard deviation |  Median
+------------- | ------------- | ------------- | -------------
+COG  | `r mean(my_fricatives$sh_cog)`  | `r sd(my_fricatives$sh_cog)` | `r median(my_fricatives$sh_cog)`
+Skewness  | `r mean(my_fricatives$sh_skewness)`  | `r sd(my_fricatives$sh_skewness)` | `r median(my_fricatives$sh_skewness)`
+---
+##### Make a boxplot
+```{r}
+data1 %>%
+  ggplot(., aes( x = phon, y = cog, fill = phon)) +
+  geom_boxplot()
+  labs( x= 'Phoneme', y = 'Center of Gravity')
+```
+---
+```{r}  
+ggplot(data = data1, aes(x = phon, y = skewness)) +
+  stat_summary(fun.data = mean_cl_boot, geom = 'pointrange') 
+```
+---
+#####Fit a model that examines center of gravity as a function of skewness for the [s] segments 
+```{r}
+data_1 <- data1 %>% 
+  filter(., phon == 's') 
+data_1 %>% 
+  ggplot(., aes(x = cog, y =skewness, color = skewness )) +
+  geom_point() +
+  geom_smooth( method = lm)
+```
+---
+##### Make a table of the model summary.
+```{r}
+model1 <-lm(data = data_1, cog ~ skewness) 
+   summary(model1)
+```
+---
+###Residuals:
+
+Min   |    1Q  | Median  |     3Q   |   Max 
+------------- | ------------- | ------------- | -------------  | -------------
+-1060.74 |  -21.72  |  58.96 |  123.00  | 405.24 
+
+###Coefficients:
+
+---   | Estimate | Std. Error | t value | p-vale 
+------------- | ------------- | ------------- | -------------  | -------------     
+(Intercept)  | 8027.2    |  212.3 |  37.80  | < 2e-16 ***
+skewness     | 3029.1    |  259.1 |  11.69 | 7.69e-10 ***
+
+
+Residual standard error | Multiple R-squared | Adjusted R-squared | F-statistic | p-value
+------------- | ------------- | ------------- | ------------- | -------------
+320.1 on 18 degrees of freedom | 0.8836 |  0.8771 | 136.6 on 1 and 18 DF | 7.691e-10
+---
+#####Check model diagnostics. Make plots.
+```{r}
+mean(model1$residuals)
+```
+#####Correlation Test
+```{r}
+cor.test(data_1$cog, model1$residuals)
+```
+---
+#####Global Validation of Linear Model Assumptions
+```{r}
+library(gvlma)
+gvmodel <- gvlma(x = model1) 
+plot(gvmodel)
+```
+---
+#####Write up the results (as if it were for a journal article).
+
+##### “A linear model was assessed between the center of gravity as a function of skewness for the [s] segments. There was a positive correlation between the two variables, B = 3029.1, S = 259.1, p = 0.005. A scatterplot summarizes the results. Overall, there was a strong, positive correlation between cog as a function of skewness. A Pearson product-moment correlation coefficient was computed. There was a positive correlation between the two variables, t = 1.5399, df = 18, p-value = 0.141. In addition, a gvlma was run using the global tes on 4 degrees of fredom with a level of signicance = 0.05"
+---
+
+ 
