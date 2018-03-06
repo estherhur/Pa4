@@ -111,7 +111,7 @@ plot(gvmodel)
 ---
 #####Write up the results (as if it were for a journal article).
 
-##### “A linear model was assessed between the center of gravity as a function of skewness for the [s] segments. There was a positive correlation between the two variables, B = 3029.1, S = 259.1, p = 0.005. A scatterplot summarizes the results. Overall, there was a strong, positive correlation between cog as a function of skewness. A Pearson product-moment correlation coefficient was computed. There was a positive correlation between the two variables, t = 1.5399, df = 18, p-value = 0.141. In addition, a gvlma was run using the global tes on 4 degrees of fredom with a level of signicance = 0.05"
+#####The production data were analyzed using a linear model to determine the center of gravity as a function of skewness for the [s] segments. There was a positive correlation between the two variables, B = 3029.1, S = 259.1, p < .001 with a multiple R-squared of .0884 and an adjusted R-squared of .887 A scatterplot summarizes the results. Overall, there was a strong, positive correlation between cog as a function of skewness. A Pearson product-moment correlation coefficient was computed. There was a positive correlation between the two variables, t(18) = 1.5399, p-value = 0.141. In addition, a gvlma was run using the global test on 4 degrees of freedom with a level of signicance = 0.05. 
 ---
 
  
